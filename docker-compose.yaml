@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  postgresqlDB:
+    image: monozel/postgres-with-postgis:0.0.1
+    container_name: postgis
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin1234*
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - data:/var/lib/postgresql/data
+    # restart: always
+    
+  pgadmin:
+    image: dpage/pgadmin4:8.0
+    container_name: pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+      - PGADMIN_LISTEN_PORT=5050
+    ports:
+      - "5050:5050"
+
+  obstacle-backend:
+    image: monozel/obstacle-backend:0.0.4
+    container_name: backend
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresqlDB:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin1234*
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgresqlDB
+
+  obstacle-frontend:
+    image: monozel/obstacle-frontend:0.0.2
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - obstacle-backend
+    volumes:
+      - /Users/ahmetoztuzel/Documents/Projects/icao-data-web/icao-data-web-frontend:/app
+      - /Users/ahmetoztuzel/Documents/Projects/icao-data-web/icao-data-web-frontend/node_modules
+    stdin_open: true
+    tty: true
+
+volumes:
+  data:

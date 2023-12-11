@@ -1,0 +1,22 @@
+
+# dependencies
+/icao-data-web-frontend/node_modules
+/icao-data-web-frontend/.pnp
+/icao-data-web-frontend.pnp.js
+
+# testing
+/icao-data-web-frontend/coverage
+
+# production
+/icao-data-web-frontend/build
+
+# misc
+/icao-data-web-frontend/.DS_Store
+/icao-data-web-frontend/.env.local
+/icao-data-web-frontend/.env.development.local
+/icao-data-web-frontend/.env.test.local
+/icao-data-web-frontend/.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
