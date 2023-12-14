@@ -18,9 +18,12 @@ public interface HGMObstacleRepository extends JpaRepository<HGMObstacle, Long> 
     List<HGMObstacle> findByPoint(Point point);
 
 
+//    @Query(value = "SELECT o.id AS obstacle_id, h.id AS hgm_obstacle_id From Obstacle o, HGMObstacle h WHERE ST_Equals(o.point, h.point) = true", nativeQuery = true)
+//    List<Object[]> findEqualsPoints();
+
     // bu sorgu ile obstacle point ile hgmobstacle point yuzde yuz eslesiyorsa o ikilileri [obstacleID, hgmobstacleID] seklinde aliyoruz.
-    @Query(value = "SELECT o.id AS obstacle_id, h.id AS hgm_obstacle_id From Obstacle o, HGMObstacle h WHERE ST_Equals(o.point, h.point) = true", nativeQuery = true)
-    List<Object[]> findEqualsPoints();
+    @Query(value = "SELECT o.id AS obstacle_id, h.id AS hgm_obstacle_id FROM Obstacle o JOIN HGMObstacle h ON ST_Equals(o.point, h.point) = true", nativeQuery = true)
+    List<Long[]> findEqualsPoints();
 
 
     // bu sorgu ile obstacle daki point ile hgmobstacle daki pointlerin yuzde yuz esit olmayanlari hgmobstaclelari db'den aliyoruz.

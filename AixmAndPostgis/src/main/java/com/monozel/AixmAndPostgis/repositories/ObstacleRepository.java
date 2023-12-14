@@ -13,14 +13,7 @@ import java.util.List;
 
 @Repository
 public interface ObstacleRepository extends JpaRepository<Obstacle, Long> {
-    boolean existsByPoint(Point point);
-    boolean existsByHeight(BigDecimal height);
-    boolean existsByElevation(double elevation);
-    boolean existsByType(String type);
-    List<Obstacle> findByPoint(Point point);
     boolean existsByPointAndHeightAndElevationAndTypeAndDesignator(Point point, BigDecimal height, double elevation, String type, String designator);
-    List<Obstacle> findByPointAndHeightAndElevationAndTypeAndDesignator(Point point, BigDecimal height, double elevation, String type, String designator);
-
 
     @Query(value = "SELECT Cast(json_build_object(" +
             " 'type', 'Feature' ," +

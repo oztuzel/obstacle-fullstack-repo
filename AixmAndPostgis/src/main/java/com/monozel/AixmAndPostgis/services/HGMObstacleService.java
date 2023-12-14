@@ -11,7 +11,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -128,18 +127,6 @@ public class HGMObstacleService {
         return hgmObstacleList;
     }
 
-    public List<HGMObstacle> getAllHGMObstacles () {
-        return hgmObstacleRepository.findAll();
-    }
-
-    public HGMObstacle getOneHGMObstacleById (Long id) {
-        return hgmObstacleRepository.findById(id).orElse(null);
-    }
-
-    public List<HGMObstacle> getHGMObstaclesByPoint(Point point) {
-        return hgmObstacleRepository.findByPoint(point);
-    }
-
     public HGMObstacle addOneHGMObstacle (HGMObstacle hgmObstacle) {
         if(hgmObstacleRepository.existsByPointAndElevationAndHeightAndObstacleNameAndStructureTypeAndLighting(
                 hgmObstacle.getPoint(),
@@ -166,8 +153,22 @@ public class HGMObstacleService {
         return hgmObstacleRequests;
     }
 
-    public List<Object[]> findEqualsPoints() {
-        return hgmObstacleRepository.findEqualsPoints();
+    public Map<Long, List<Long>> findEqualsPoints() {
+        List<Long[]> resultList = hgmObstacleRepository.findEqualsPoints();
+        Map<Long, List<Long>> resultMap = new HashMap<>();
+        for (Long[] result : resultList) {
+            Long obstacleId = (Long) result[0];
+            Long hgmObstacleId = (Long) result[1];
+
+            if (!resultMap.containsKey(obstacleId)) {
+                resultMap.put(obstacleId, new ArrayList<>());
+            }
+
+            resultMap.get(obstacleId).add(hgmObstacleId);
+        }
+        return resultMap;
+
+
     }
 
     // ondalik koordinati alir ve "40,44,52.78" seklinde bir string degeri dondurur. virgulden sonraki 2. basamak en yakin degere yuvarlanmis halidir
@@ -226,7 +227,6 @@ public class HGMObstacleService {
             hgmObstacleRequestList.add(new HGMObstacleRequest(hgmObstacle));
         }
         return hgmObstacleRequestList;
-
     }
 
     public  List<HGMObstacleRequest> findNearestTenPoints(Long hgmObstacleId) {

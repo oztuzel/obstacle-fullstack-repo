@@ -13,7 +13,7 @@ services:
     volumes:
       - data:/var/lib/postgresql/data
     # restart: always
-    
+
   pgadmin:
     image: dpage/pgadmin4:8.0
     container_name: pgadmin
@@ -25,7 +25,7 @@ services:
       - "5050:5050"
 
   obstacle-backend:
-    image: monozel/obstacle-backend:0.0.4
+    image: monozel/obstacle-backend:0.0.6
     container_name: backend
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresqlDB:5432/postgres
@@ -37,7 +37,7 @@ services:
       - postgresqlDB
 
   obstacle-frontend:
-    image: monozel/obstacle-frontend:0.0.2
+    image: monozel/obstacle-frontend:0.0.5
     container_name: frontend
     ports:
       - "3000:3000"

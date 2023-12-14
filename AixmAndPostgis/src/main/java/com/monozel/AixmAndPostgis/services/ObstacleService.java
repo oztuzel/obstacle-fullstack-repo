@@ -97,13 +97,11 @@ public class ObstacleService {
             }
         }
 
-        Map<Long, List<Long>> nonEmptyLists = resultMap.entrySet().stream()
+//        Map<Long, List<Long>> nonEmptyLists =
+              return  resultMap.entrySet().stream()
                 .filter(entry -> !entry.getValue().isEmpty())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-
-        System.out.println("Dms koordinatinda virgulden sonraki tek hanesi ayni olanlarin sayisi: " + nonEmptyLists.size());
-        return nonEmptyLists;
+//        System.out.println("Dms koordinatinda virgulden sonraki tek hanesi ayni olanlarin sayisi: " + nonEmptyLists.size());
     }
 
 
@@ -138,50 +136,6 @@ public class ObstacleService {
         }
 
         return obstacleDistanceRequestList;
-    }
-
-    // burada dms koordinatinda virgulden sonra tek basamak olacak sekilde sayiyi yuvarlamadan kisaltan fonksiyonu kullaniyoruz ve sonra degerleri karsilastiriyoruz.
-    private boolean checkFilterConditions(Obstacle obstacle, HGMObstacle hgmObstacle) {
-
-        double obstacleLatitudeDMS = truncatedValue(obstacle.getLatitudeDMS() );
-        double obstacleLongitudeDMS =  truncatedValue(  obstacle.getLongitudeDMS());
-        double hgmLatitudeDMS = truncatedValue( hgmObstacle.getLatitudeDMS()) ;
-        double hgmLongitudeDMS = truncatedValue(  hgmObstacle.getLongitudeDMS());
-
-        return obstacleLatitudeDMS == hgmLatitudeDMS && obstacleLongitudeDMS == hgmLongitudeDMS;
-    }
-
-    // burada dms koordinatinda virgule kadarki integer degerini yuvarlamadan kesiyoruz ve birbirleriyle kiyasliyoruz.
-    private boolean checkOtherFilterConditions (Obstacle obstacle, HGMObstacle hgmObstacle) {
-        int obstacleLatitudeDMS = (int) obstacle.getLatitudeDMS();
-        int obstacleLongitudeDMS = (int) obstacle.getLongitudeDMS();
-        int hgmLatitudeDMS = (int) hgmObstacle.getLatitudeDMS();
-        int hgmLongitudeDMS = (int) hgmObstacle.getLongitudeDMS();
-
-        return obstacleLatitudeDMS == hgmLatitudeDMS && obstacleLongitudeDMS == hgmLongitudeDMS;
-    }
-
-
-    // 446678.78 gibi dms koordinati alip virgulden sonra tek haneye dusuruyoruz. 446678.7 gibi (yuvarlama yapmiyoruz.)
-    private double truncatedValue(double value){
-        // virgulden sonra 2 basamak degil tek basamak olmasini istedigimiz icin double degerini kisaltiyoruz. yuvarlama yapmadan kisaltmak icin string'e cevirip kisalttim.
-        NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
-
-        numberFormat.setRoundingMode(RoundingMode.DOWN); // burada .down secerek truncate yap rounded yapma dedik
-
-        numberFormat.setMaximumFractionDigits(1); // virgulden sonra tek basamak olsun dedik.
-        // Truncate işlemini uygula dedigimiz yer burasi onceki yerler sartlari olusturdugumuz yer.
-        String formattedValue = numberFormat.format(value);
-
-        try {
-            double truncatedValue = numberFormat.parse(formattedValue).doubleValue();
-//            System.out.println(truncatedValue);
-            return truncatedValue;
-        } catch (ParseException e) {
-            System.out.println("DMS koordinati virgulden sonra tek basamak olacak sekilde truncate yaparken hata olustu.");
-            e.printStackTrace();
-        };
-        return 0;
     }
 
     // dms koordinatindaki virgule kadarki kisimlari ayni olan obstacle'larin idlerini listeliyoruz. {"1": [23,36,45]} gibi bir sonuc dondurur.
@@ -234,7 +188,7 @@ public class ObstacleService {
             if (!nearbyObstacles.isEmpty()) {
 //                result.put(obstacle.getId(),nearbyObstacles);
 
-                // bu kisimlar ikilikleri gidermek icin yukaridaki set ile calisan kisim ama ikiliklerin olmasi cok birseyi degistirmez o sebeple sildim.
+                // bu kisimlar ikilikleri gidermek icin yukaridaki set ile calisan kisim ama ikiliklerin olmasi cok birseyi degistirmez.
                 for (Long nearbyObstacleId : nearbyObstacles) {
                     String pairKey1 = obstacle.getId() + "-" + nearbyObstacleId;
                     String pairKey2 = nearbyObstacleId + "-" + obstacle.getId();
@@ -294,6 +248,51 @@ public class ObstacleService {
         return jsonArray.toString();
     }
 
+
+
+    // burada dms koordinatinda virgulden sonra tek basamak olacak sekilde sayiyi yuvarlamadan kisaltan fonksiyonu kullaniyoruz ve sonra degerleri karsilastiriyoruz.
+    private boolean checkFilterConditions(Obstacle obstacle, HGMObstacle hgmObstacle) {
+
+        double obstacleLatitudeDMS = truncatedValue(obstacle.getLatitudeDMS() );
+        double obstacleLongitudeDMS =  truncatedValue(  obstacle.getLongitudeDMS());
+        double hgmLatitudeDMS = truncatedValue( hgmObstacle.getLatitudeDMS()) ;
+        double hgmLongitudeDMS = truncatedValue(  hgmObstacle.getLongitudeDMS());
+
+        return obstacleLatitudeDMS == hgmLatitudeDMS && obstacleLongitudeDMS == hgmLongitudeDMS;
+    }
+
+    // burada dms koordinatinda virgule kadarki integer degerini yuvarlamadan kesiyoruz ve birbirleriyle kiyasliyoruz.
+    private boolean checkOtherFilterConditions (Obstacle obstacle, HGMObstacle hgmObstacle) {
+        int obstacleLatitudeDMS = (int) obstacle.getLatitudeDMS();
+        int obstacleLongitudeDMS = (int) obstacle.getLongitudeDMS();
+        int hgmLatitudeDMS = (int) hgmObstacle.getLatitudeDMS();
+        int hgmLongitudeDMS = (int) hgmObstacle.getLongitudeDMS();
+
+        return obstacleLatitudeDMS == hgmLatitudeDMS && obstacleLongitudeDMS == hgmLongitudeDMS;
+    }
+
+
+    // 446678.78 gibi dms koordinati alip virgulden sonra tek haneye dusuruyoruz. 446678.7 gibi (yuvarlama yapmiyoruz.)
+    private double truncatedValue(double value){
+        // virgulden sonra 2 basamak degil tek basamak olmasini istedigimiz icin double degerini kisaltiyoruz. yuvarlama yapmadan kisaltmak icin string'e cevirip kisalttim.
+        NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
+
+        numberFormat.setRoundingMode(RoundingMode.DOWN); // burada .down secerek truncate yap rounded yapma dedik
+
+        numberFormat.setMaximumFractionDigits(1); // virgulden sonra tek basamak olsun dedik.
+        // Truncate işlemini uygula dedigimiz yer burasi onceki yerler sartlari olusturdugumuz yer.
+        String formattedValue = numberFormat.format(value);
+
+        try {
+            double truncatedValue = numberFormat.parse(formattedValue).doubleValue();
+//            System.out.println(truncatedValue);
+            return truncatedValue;
+        } catch (ParseException e) {
+            System.out.println("DMS koordinati virgulden sonra tek basamak olacak sekilde truncate yaparken hata olustu.");
+            e.printStackTrace();
+        };
+        return 0;
+    }
 
 
 }

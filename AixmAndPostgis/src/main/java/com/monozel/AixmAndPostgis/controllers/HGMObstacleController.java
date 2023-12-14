@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -39,9 +40,10 @@ public class HGMObstacleController {
     }
 
     @GetMapping("/findEquals")
-    public List<Object[]> findEqualsPoints(){
-        System.out.println(hgmObstacleService.findEqualsPoints().size());
-        return hgmObstacleService.findEqualsPoints();
+    public Map<Long, List<Long>> findEqualsPoints(){
+        Map<Long, List<Long>> matchedObstacles = hgmObstacleService.findEqualsPoints();
+        System.out.println(matchedObstacles.size());
+        return matchedObstacles;
     }
 
     @GetMapping("/findSimilarPoints")
