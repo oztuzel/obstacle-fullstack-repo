@@ -36,6 +36,10 @@ public class ObstacleService {
         return obstacleRepository.findAll();
     }
 
+    public void deleteAllObstacles (){
+        obstacleRepository.deleteAll();
+    }
+
     public Obstacle addOneObstacle (Obstacle obstacle) {
         // db de ayni point ayni height ayni elevation ayni type ve ayni designator'e sahip baska bir obstacle varsa onu tekrar kaydetmiyoruz.
         if (obstacleRepository.existsByPointAndHeightAndElevationAndTypeAndDesignator(obstacle.getPoint(),obstacle.getHeight(),obstacle.getElevation(),obstacle.getType(),obstacle.getDesignator())) {

@@ -298,6 +298,8 @@ public class JavaXmlConvertService {
     // xml dosya icerigini react ile on yuzde okuyup post request ile backend'e yolluyoruz ve burada o dosyayi isliyoruz.
     public AIXMBasicMessageType xmlFiletoJava (String xmlContent) throws JAXBException {
 
+        obstacleService.deleteAllObstacles();
+
         // StringReader kullanarak XML içeriğini oku
         StringReader reader = new StringReader(xmlContent);
 

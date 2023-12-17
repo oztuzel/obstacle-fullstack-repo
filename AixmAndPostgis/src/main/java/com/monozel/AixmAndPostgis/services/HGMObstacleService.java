@@ -1,9 +1,13 @@
 package com.monozel.AixmAndPostgis.services;
 
 import com.monozel.AixmAndPostgis.entities.HGMObstacle;
+import com.monozel.AixmAndPostgis.entities.Obstacle;
 import com.monozel.AixmAndPostgis.entities.StructureType;
 import com.monozel.AixmAndPostgis.repositories.HGMObstacleRepository;
+import com.monozel.AixmAndPostgis.repositories.ObstacleRepository;
 import com.monozel.AixmAndPostgis.requests.HGMObstacleRequest;
+import com.monozel.AixmAndPostgis.requests.MatchedObstacles;
+import com.monozel.AixmAndPostgis.requests.ObstacleRequest;
 import lombok.AllArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -22,6 +26,11 @@ import java.util.*;
 public class HGMObstacleService {
 
     private HGMObstacleRepository hgmObstacleRepository;
+    private ObstacleRepository obstacleRepository;
+
+    public void deleteAllHGMObstacles (){
+        hgmObstacleRepository.deleteAll();
+    }
 
     public List<HGMObstacle> readExcel(MultipartFile file) {
         List<HGMObstacle> hgmObstacleList = new ArrayList<>();
@@ -153,9 +162,11 @@ public class HGMObstacleService {
         return hgmObstacleRequests;
     }
 
-    public Map<Long, List<Long>> findEqualsPoints() {
+    public List<MatchedObstacles> findEqualsPoints() {
         List<Long[]> resultList = hgmObstacleRepository.findEqualsPoints();
+
         Map<Long, List<Long>> resultMap = new HashMap<>();
+
         for (Long[] result : resultList) {
             Long obstacleId = (Long) result[0];
             Long hgmObstacleId = (Long) result[1];
@@ -166,8 +177,28 @@ public class HGMObstacleService {
 
             resultMap.get(obstacleId).add(hgmObstacleId);
         }
-        return resultMap;
 
+        List<MatchedObstacles> matchedObstacleList= new ArrayList<>();
+
+        for (Map.Entry<Long, List<Long>> entry : resultMap.entrySet()) {
+            MatchedObstacles matchedObstacles = new MatchedObstacles();
+            Long obstacleId = entry.getKey();
+            List<Long> hgmObstacleIds = entry.getValue();
+
+            // Bu kısımda Obstacle ve HGMObstacle'ları id'lerine göre bulup matched obstacles class inda uygun yere set ediyoruz.
+            Obstacle obstacle = obstacleRepository.findById(obstacleId).orElse(null);
+            matchedObstacles.setObstacleRequest(new ObstacleRequest(obstacle));
+
+            List<HGMObstacle> hgmObstacles = hgmObstacleRepository.findAllById(hgmObstacleIds);
+            List<HGMObstacleRequest> hgmObstacleRequestList = new ArrayList<>();
+            for (HGMObstacle hgmObstacle : hgmObstacles) {
+                hgmObstacleRequestList.add(new HGMObstacleRequest(hgmObstacle));
+            }
+            matchedObstacles.setHgmObstacleRequestList(hgmObstacleRequestList);
+            matchedObstacleList.add(matchedObstacles);
+        }
+
+        return matchedObstacleList;
 
     }
 
