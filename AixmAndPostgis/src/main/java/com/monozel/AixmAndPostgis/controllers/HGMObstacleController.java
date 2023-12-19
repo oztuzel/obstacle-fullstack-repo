@@ -1,15 +1,19 @@
 package com.monozel.AixmAndPostgis.controllers;
 
+import aero.aixm.message.AIXMBasicMessageType;
 import com.monozel.AixmAndPostgis.entities.HGMObstacle;
 import com.monozel.AixmAndPostgis.entities.Obstacle;
 import com.monozel.AixmAndPostgis.requests.HGMObstacleRequest;
 import com.monozel.AixmAndPostgis.requests.MatchedObstacles;
 import com.monozel.AixmAndPostgis.requests.ObstacleRequest;
 import com.monozel.AixmAndPostgis.services.HGMObstacleService;
+import com.monozel.AixmAndPostgis.services.JavaXmlConvertService;
+import com.monozel.AixmAndPostgis.services.ObstacleService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +25,8 @@ import java.util.Map;
 public class HGMObstacleController {
 
     private HGMObstacleService hgmObstacleService;
+    private ObstacleService obstacleService;
+    private JavaXmlConvertService javaXmlConvertService;
 
     // id si elimizde olan hgmObstacle'i db'den cekme
     @GetMapping("/{id}")
@@ -58,6 +64,16 @@ public class HGMObstacleController {
     @GetMapping("/nearestPoints")
     public  List<HGMObstacleRequest> findNearestTenHGMObstacles(@RequestParam("hgmObstacleId") Long hgmObstacleID){
         return hgmObstacleService.findNearestTenPoints(hgmObstacleID);
+    }
+
+    @GetMapping("/findNotMatchedHGMObstacle")
+    public List<HGMObstacleRequest> findNotMatchedHGMObstacle(){
+        return obstacleService.findNotMatchedHGMObstacles();
+    }
+
+    @GetMapping("/writeXmlFileFromNotMatchedHGM")
+    public AIXMBasicMessageType writeXmlFileFromNotMatchedHgm() throws JAXBException {
+        return javaXmlConvertService.notMatchedHGMObstaclesToXmlFile();
     }
 
 }

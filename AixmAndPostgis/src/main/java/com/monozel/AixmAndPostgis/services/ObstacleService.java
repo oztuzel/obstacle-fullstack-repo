@@ -1,14 +1,15 @@
 package com.monozel.AixmAndPostgis.services;
 
+import aero.aixm.message.AIXMBasicMessageType;
 import com.monozel.AixmAndPostgis.entities.HGMObstacle;
 import com.monozel.AixmAndPostgis.entities.Obstacle;
 import com.monozel.AixmAndPostgis.repositories.HGMObstacleRepository;
 import com.monozel.AixmAndPostgis.repositories.ObstacleRepository;
+import com.monozel.AixmAndPostgis.requests.HGMObstacleRequest;
 import com.monozel.AixmAndPostgis.requests.ObstacleDistanceRequest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.locationtech.jts.geom.Point;
 import com.monozel.AixmAndPostgis.requests.ObstacleRequest;
 import lombok.AllArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
@@ -82,33 +83,6 @@ public class ObstacleService {
         return new ObstacleRequest(obstacle.orElse(null));
     }
 
-
-    // point'i hgm obstacle'daki point'i ile yuzde yuz eslesmeyenleri aliyoruz.
-    public Map<Long, List<Long>> findSimilarPoints() {
-        List<Obstacle> obstacleList =  obstacleRepository.findSimilarPoints();
-        List<HGMObstacle> hgmObstacleList = hgmObstacleRepository.findSimilarPoints();
-
-        // Obstacle ve HGMObstacle id'lerini eşleştirmek için bir Map oluştur
-        Map<Long, List<Long>> resultMap = new HashMap<>();
-
-        // LatitudeDMS ve LongitudeDMS'yi filtreleme kriterlerine göre kontrol et
-        for (Obstacle obstacle : obstacleList) {
-            resultMap.put(obstacle.getId(), new ArrayList<>());
-            for (HGMObstacle hgmObstacle : hgmObstacleList) {
-                if (checkFilterConditions(obstacle, hgmObstacle)) {
-                    resultMap.get(obstacle.getId()).add(hgmObstacle.getId());
-                }
-            }
-        }
-
-//        Map<Long, List<Long>> nonEmptyLists =
-              return  resultMap.entrySet().stream()
-                .filter(entry -> !entry.getValue().isEmpty())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-//        System.out.println("Dms koordinatinda virgulden sonraki tek hanesi ayni olanlarin sayisi: " + nonEmptyLists.size());
-    }
-
-
     public  List<ObstacleDistanceRequest> findNearestTenPoints(Long obstacleId) {
         List<Obstacle> obstacleList = obstacleRepository.findNearestObstacles(obstacleId);
         List<ObstacleRequest> obstacleRequestList = new ArrayList<>();
@@ -141,6 +115,34 @@ public class ObstacleService {
 
         return obstacleDistanceRequestList;
     }
+
+    // point'i hgm obstacle'daki point'i ile yuzde yuz eslesmeyenleri aliyoruz.
+    public Map<Long, List<Long>> findSimilarPoints() {
+        List<Obstacle> obstacleList =  obstacleRepository.findSimilarPoints();
+        List<HGMObstacle> hgmObstacleList = hgmObstacleRepository.findSimilarPoints();
+
+        // Obstacle ve HGMObstacle id'lerini eşleştirmek için bir Map oluştur
+        Map<Long, List<Long>> resultMap = new HashMap<>();
+
+        // LatitudeDMS ve LongitudeDMS'yi filtreleme kriterlerine göre kontrol et
+        for (Obstacle obstacle : obstacleList) {
+            resultMap.put(obstacle.getId(), new ArrayList<>());
+            for (HGMObstacle hgmObstacle : hgmObstacleList) {
+                if (checkFilterConditions(obstacle, hgmObstacle)) {
+                    resultMap.get(obstacle.getId()).add(hgmObstacle.getId());
+                }
+            }
+        }
+
+//        Map<Long, List<Long>> nonEmptyLists =
+              return  resultMap.entrySet().stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+//        System.out.println("Dms koordinatinda virgulden sonraki tek hanesi ayni olanlarin sayisi: " + nonEmptyLists.size());
+    }
+
+
+
 
     // dms koordinatindaki virgule kadarki kisimlari ayni olan obstacle'larin idlerini listeliyoruz. {"1": [23,36,45]} gibi bir sonuc dondurur.
     public Map<Long, List<Long>> findSamePointsWithInteger() {
@@ -177,6 +179,34 @@ public class ObstacleService {
                 .filter(entry -> !entry.getValue().isEmpty())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+    }
+
+    public List<HGMObstacleRequest> findNotMatchedHGMObstacles () {
+        // pointleri tamamen ayni olmayan hgm obstacle'lari aldik (tamamen eslesenleri eledik)
+        List<HGMObstacle> similarHGMObstacleList = hgmObstacleRepository.findSimilarPoints();
+
+        // burada da integer kismi eslesenleri ve virgulden sonra tek hanesi eslesenleri eleyecez. Hic eslesmeyenleri bulmus olacaz.
+        Map<Long, List<Long>> samePointsWithInteger = findSamePointsWithInteger();
+
+        List<HGMObstacle> filteredList = similarHGMObstacleList.stream().filter(
+                obstacle -> !samePointsWithInteger.values().stream().flatMap(Collection::stream)
+                    .collect(Collectors.toList())
+                    .contains(obstacle.getId()))
+                .collect(Collectors.toList());
+
+        Map<Long,List<Long>> similarPoints = findSimilarPoints();
+
+        List<HGMObstacle> result = filteredList.stream().filter(
+                obstacle -> !similarPoints.values().stream().flatMap(Collection::stream)
+                        .collect(Collectors.toList())
+                        .contains(obstacle.getId()))
+                .collect(Collectors.toList());
+
+        List<HGMObstacleRequest> lastResult = new ArrayList<>();
+        for(HGMObstacle hgmObstacle: result) {
+            lastResult.add(new HGMObstacleRequest(hgmObstacle));
+        }
+        return lastResult;
     }
 
 
@@ -297,6 +327,7 @@ public class ObstacleService {
         };
         return 0;
     }
+
 
 
 }

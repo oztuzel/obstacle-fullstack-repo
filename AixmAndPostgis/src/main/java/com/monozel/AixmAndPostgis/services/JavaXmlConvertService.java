@@ -6,6 +6,7 @@ import aero.aixm.message.BasicMessageMemberAIXMPropertyType;
 import com.cfar.swim.aixm.bind.AixmMarshaller;
 import com.cfar.swim.aixm.bind.AixmUnmarshaller;
 import com.monozel.AixmAndPostgis.entities.Obstacle;
+import com.monozel.AixmAndPostgis.requests.HGMObstacleRequest;
 import lombok.AllArgsConstructor;
 import net.opengis.gml.*;
 import org.locationtech.jts.geom.Coordinate;
@@ -19,6 +20,7 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -292,6 +294,272 @@ public class JavaXmlConvertService {
         return aixmBasicMessageType;
     }
 
+    public AIXMBasicMessageType fromNotMatchedHGMObstaclestoXML(){
+        List<HGMObstacleRequest> hgmObstacleRequestList = obstacleService.findNotMatchedHGMObstacles();
+        int gmlId= 1;
+
+        AIXMBasicMessageType aixmBasicMessageType = new AIXMBasicMessageType();
+        aixmBasicMessageType.setId("gml.id" + gmlId);
+        gmlId = gmlId+1;
+
+        for(HGMObstacleRequest hgmObstacleRequest : hgmObstacleRequestList){
+            // 2- BasicMessageMemberAIXMPropertyType olusturuyoruz.
+            BasicMessageMemberAIXMPropertyType basicMessageMemberAIXMPropertyType = new BasicMessageMemberAIXMPropertyType();
+
+
+            // 3- VerticalStructureType olusturuyoruz.
+            VerticalStructureType verticalStructureType = new VerticalStructureType();
+            verticalStructureType.setId("gml.id" + gmlId);
+            gmlId = gmlId + 1;
+
+            // identifier field'i olusturuyoruz.
+            CodeWithAuthorityType codeWithAuthorityType = new CodeWithAuthorityType();
+            codeWithAuthorityType.setCodeSpace("urn:uuid:");
+            codeWithAuthorityType.setValue(UUID.randomUUID().toString());
+            verticalStructureType.setIdentifier(codeWithAuthorityType);
+
+
+            // 4- VerticalStructureTimeSlicePropertyType olusturuyoruz.
+            VerticalStructureTimeSlicePropertyType verticalStructureTimeSlicePropertyType = new VerticalStructureTimeSlicePropertyType();
+
+
+            // 5- VerticalStructureTimeSliceType olusturuyoruz.
+            VerticalStructureTimeSliceType verticalStructureTimeSliceType = new VerticalStructureTimeSliceType();
+            verticalStructureTimeSliceType.setId("gml.id" + gmlId);
+            gmlId = gmlId + 1;
+
+            // validTime field'i olusturuyoruz icinde TimePeriod var
+            TimePrimitivePropertyType validTime = new TimePrimitivePropertyType();
+
+            TimePeriodType timePeriodType = new TimePeriodType();
+            TimePositionType timePositionTypeBeginPosition = new TimePositionType(); // beginPosition fieldini olusturalim
+            timePositionTypeBeginPosition.getValue().add("2019-09-12T 00:00:00");
+            timePeriodType.setBeginPosition(timePositionTypeBeginPosition);
+
+            timePeriodType.setId("gml.id" + gmlId);
+            gmlId = gmlId + 1;
+
+            TimePositionType timePositionTypeEndPosition = new TimePositionType(); // endPosition kismini olusturalim.
+            timePositionTypeEndPosition.setIndeterminatePosition(TimeIndeterminateValueType.UNKNOWN);
+            timePeriodType.setEndPosition(timePositionTypeEndPosition);
+
+            JAXBElement<TimePeriodType> timePeriodTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.opengis.net/gml/3.2", "TimePeriod"),
+                    TimePeriodType.class,
+                    timePeriodType
+            );
+            validTime.setAbstractTimePrimitive(timePeriodTypeJAXBElement);
+
+            verticalStructureTimeSliceType.setValidTime(validTime);
+
+            // interpretation, sequenceNumber, correctionNumber fields
+            verticalStructureTimeSliceType.setInterpretation("BASELINE");
+            verticalStructureTimeSliceType.setCorrectionNumber(0L);
+            verticalStructureTimeSliceType.setSequenceNumber(1L);
+
+
+            // featureLifeTime field
+            TimePrimitivePropertyType featureTime = new TimePrimitivePropertyType();
+
+            TimePeriodType timePeriodType2 = new TimePeriodType();
+            TimePositionType timePositionTypeBeginPosition2 = new TimePositionType(); // beginPosition fieldini olusturalim
+            timePositionTypeBeginPosition2.getValue().add("2019-09-12T 00:00:00");
+            timePeriodType2.setBeginPosition(timePositionTypeBeginPosition2);
+
+            timePeriodType2.setId("gml.id" + gmlId);
+            gmlId = gmlId + 1;
+
+            TimePositionType timePositionTypeEndPosition2 = new TimePositionType(); // endPosition kismini olusturalim.
+            timePositionTypeEndPosition2.setIndeterminatePosition(TimeIndeterminateValueType.UNKNOWN);
+            timePeriodType2.setEndPosition(timePositionTypeEndPosition2);
+
+            JAXBElement<TimePeriodType> timePeriodTypeJAXBElement2 = new JAXBElement<>(
+                    new QName("http://www.opengis.net/gml/3.2", "TimePeriod"),
+                    TimePeriodType.class,
+                    timePeriodType2
+            );
+            featureTime.setAbstractTimePrimitive(timePeriodTypeJAXBElement2);
+
+            verticalStructureTimeSliceType.setFeatureLifetime(featureTime);
+
+
+            // name field'ini olusturalim duzenleyelim.  JAXBElement<TextNameType> verticalStructureName
+            TextNameType type = new TextNameType();
+            type.setValue(hgmObstacleRequest.getObstacleName());
+            JAXBElement<TextNameType> textNameTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "name"),
+                    TextNameType.class,
+                    type
+            );
+            verticalStructureTimeSliceType.setVerticalStructureName(textNameTypeJAXBElement);
+
+            // type kismi
+            CodeVerticalStructureType codeVerticalStructureType = new CodeVerticalStructureType();
+            codeVerticalStructureType.setValue(hgmObstacleRequest.getStructureType());
+            JAXBElement<CodeVerticalStructureType> codeVerticalStructureTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "type"),
+                    CodeVerticalStructureType.class,
+                    codeVerticalStructureType
+            );
+            verticalStructureTimeSliceType.setType(codeVerticalStructureTypeJAXBElement);
+
+
+            // lighted field
+            CodeYesNoType codeYesNoType = new CodeYesNoType();
+            if(hgmObstacleRequest.getLighting() == null) {
+                codeYesNoType.setValue("NO");
+            }else {
+                codeYesNoType.setValue(hgmObstacleRequest.getLighting());
+            }
+            JAXBElement<CodeYesNoType> codeYesNoTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "lighted"),
+                    CodeYesNoType.class,
+                    codeYesNoType
+            );
+            verticalStructureTimeSliceType.setLighted(codeYesNoTypeJAXBElement);
+
+
+            // group field
+            CodeYesNoType group = new CodeYesNoType();
+            group.setValue("NO");
+            JAXBElement<CodeYesNoType> groupJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "group"),
+                    CodeYesNoType.class,
+                    group
+            );
+            verticalStructureTimeSliceType.setGroup(groupJAXBElement);
+
+            // part fieldini asagidakileri olusturup set edecez.
+
+            // 6- VerticalStructurePartPropertyType
+            VerticalStructurePartPropertyType verticalStructurePartPropertyType = new VerticalStructurePartPropertyType();
+
+            // 7- VerticalStructurePartType olusturuyoruz.
+            VerticalStructurePartType verticalStructurePartType = new VerticalStructurePartType();
+            verticalStructurePartType.setId("gml.id" + gmlId);
+            gmlId = gmlId + 1;
+
+            // a) verticalExtent kismi
+            ValDistanceType valDistanceType = new ValDistanceType();
+            valDistanceType.setUom("FT");
+
+
+            valDistanceType.setValue(BigDecimal.valueOf(hgmObstacleRequest.getHeight()));
+//            valDistanceType.setValue(BigDecimal.valueOf(obstacle.getHeight()));
+            JAXBElement<ValDistanceType> valDistanceTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "verticalExtent"),
+                    ValDistanceType.class,
+                    valDistanceType
+            );
+            verticalStructurePartType.setVerticalExtent(valDistanceTypeJAXBElement);
+
+            // b) type i verticalStructureTimeSlice icinde olusturmustuk aynisi
+            verticalStructurePartType.setType(codeVerticalStructureTypeJAXBElement);
+
+            // c) designator field'i
+            TextDesignatorType textDesignatorType = new TextDesignatorType();
+            textDesignatorType.setValue("Designator Kismi Yok"); // + obstacleNumber kismini kestim
+//            obstacleNumber = obstacleNumber+1;
+            JAXBElement<TextDesignatorType> textDesignatorTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "designator"),
+                    TextDesignatorType.class,
+                    textDesignatorType
+            );
+            verticalStructurePartType.setDesignator(textDesignatorTypeJAXBElement);
+
+            // d) horizontalProjection_location field (icinde ElevatedPoint var)
+            ElevatedPointPropertyType elevatedPointPropertyType = new ElevatedPointPropertyType();
+
+            ElevatedPointType elevatedPointType = new ElevatedPointType();  // elevatedpointtype class'i pointtype classindan o da opengis.gml.PointType class'indan extent eder bu sayede pos vb kullaniyoruz.
+            DirectPositionType coordinates = new DirectPositionType();
+            coordinates.getValue().add(hgmObstacleRequest.getLatitude());
+            coordinates.getValue().add(hgmObstacleRequest.getLongitude());
+
+//  b          coordinates.getValue().add(obstacle.getLatitude());
+//  b          coordinates.getValue().add(obstacle.getLongitude());
+// a          coordinates.getValue().add(obstacle.getPoint().getX());
+            elevatedPointType.setPos(coordinates);
+            elevatedPointType.setSrsName("urn:ogc:def:crs:EPSG::4326" );
+
+            elevatedPointType.setId("gml.id" + gmlId);
+            gmlId = gmlId + 1;
+
+            ValDistanceVerticalType valDistanceVerticalType = new ValDistanceVerticalType();
+
+            valDistanceVerticalType.setValue(String.valueOf((int) hgmObstacleRequest.getElevation()));
+
+            valDistanceVerticalType.setUom("FT");
+            JAXBElement<ValDistanceVerticalType> valDistanceJaxb = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "elevation"),
+                    ValDistanceVerticalType.class,
+                    valDistanceVerticalType
+            );
+            elevatedPointType.setElevation(valDistanceJaxb);
+
+            elevatedPointPropertyType.setElevatedPoint(elevatedPointType);
+            JAXBElement<ElevatedPointPropertyType> elevatedPointPropertyTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "horizontalProjection_location"),
+                    ElevatedPointPropertyType.class,
+                    elevatedPointPropertyType
+            );
+
+            verticalStructurePartType.setHorizontalProjectionLocation(elevatedPointPropertyTypeJAXBElement);
+
+
+            // e) lighting field (icinde LightElement var)
+            LightElementPropertyType lightElementPropertyType = new LightElementPropertyType();
+
+            LightElementType lightElement = new LightElementType();
+            CodeColourType colour = new CodeColourType();
+            if(hgmObstacleRequest.getLighting() != null){
+              colour.setValue("OTHER");
+            }else{
+                colour.setValue(null);
+            }
+            JAXBElement<CodeColourType> lightElementColour = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "colour"),
+                    CodeColourType.class,
+                    colour
+            );
+            lightElement.setColour(lightElementColour);
+
+            lightElement.setId("gml.id" + gmlId);
+            gmlId = gmlId + 1;
+
+            lightElementPropertyType.setLightElement(lightElement);
+
+            verticalStructurePartType.getLighting().add(lightElementPropertyType);
+
+
+            // VerticalStructurePart burada bitti. bunu VerticalStructurePartPropertyType icindeki field'a veriyoruz.
+            verticalStructurePartPropertyType.setVerticalStructurePart(verticalStructurePartType);
+
+            // olusturdugumuz VerticalStructurePartPropertyType'i, VerticalStructureTimeSliceType icindeki ilgili field'a veriyoruz.
+            verticalStructureTimeSliceType.getPart().add(verticalStructurePartPropertyType);
+
+            // olusturdugumuz diger field'larla beraber verticalStructureTimeSliceType (5. kisimda) olusturmamizda tamamlandi. bunu verticalStructureTimeSlicePropertyType'da ilgili field'a set ediyoruz
+            verticalStructureTimeSlicePropertyType.setVerticalStructureTimeSlice(verticalStructureTimeSliceType);
+
+            // bunu VerticalStructureType daki ilgili field'a set ediyoruz.
+            verticalStructureType.getTimeSlice().add(verticalStructureTimeSlicePropertyType);
+
+            // VerticalStructureType olusturmamizda bitti bunu jaxbelement'e donusturup ilgili field'a set ediyoruz
+            JAXBElement<VerticalStructureType> verticalStructureTypeJAXBElement = new JAXBElement<>(
+                    new QName("http://www.aixm.aero/schema/5.1.1", "VerticalStructure"),
+                    VerticalStructureType.class,
+                    verticalStructureType
+            );
+            basicMessageMemberAIXMPropertyType.setAbstractAIXMFeature(verticalStructureTypeJAXBElement);
+
+            // AIXMBasicMessageType'daki hasMember field'a bitirdigimiz basicMessageMemberAIXMPropertyType'i set ediyoruz.
+            aixmBasicMessageType.getHasMember().add(basicMessageMemberAIXMPropertyType);
+
+
+        }
+
+        return aixmBasicMessageType;
+    }
+
     // onceden olusturulmus xml dosyalari aixm 5.1.0 ile olusturuldugu icin o xml dosyalarini okumak icin
     // pom.xml de dependency olarak aixm-jaxb mvn reponun verison 5.1.0-beta5 'i kullan
 
@@ -487,6 +755,18 @@ public class JavaXmlConvertService {
         AixmMarshaller marshaller = new AixmMarshaller();
         marshaller.marshal(jaxbElement,new File("obstacle.xml"));
 
+        return aixmBasicMessageType;
+    }
+
+    public AIXMBasicMessageType notMatchedHGMObstaclesToXmlFile () throws JAXBException {
+        AIXMBasicMessageType aixmBasicMessageType = fromNotMatchedHGMObstaclestoXML();
+        JAXBElement<AIXMBasicMessageType> jaxbElement = new JAXBElement<>(
+                new QName("http://www.aixm.aero/schema/5.1/message","AIXMBasicMessage"),
+                AIXMBasicMessageType.class,
+                aixmBasicMessageType
+        );
+        AixmMarshaller marshaller = new AixmMarshaller();
+        marshaller.marshal(jaxbElement,new File("notMatchedHGMObstacles.xml"));
         return aixmBasicMessageType;
     }
 

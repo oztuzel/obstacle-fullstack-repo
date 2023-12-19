@@ -51,7 +51,7 @@ public class ObstacleController {
 
     @GetMapping("/findPointsSameIntegerCoordinates")
     public Map<Long, List<Long>> findOtherSimilarObstacles() {
-        System.out.println(obstacleService.findSamePointsWithInteger().size());
+//        System.out.println(obstacleService.findSamePointsWithInteger().size());
         return obstacleService.findSamePointsWithInteger();
     }
 
