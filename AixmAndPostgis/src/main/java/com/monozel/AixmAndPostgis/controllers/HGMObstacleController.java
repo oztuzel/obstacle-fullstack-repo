@@ -5,7 +5,6 @@ import com.monozel.AixmAndPostgis.entities.HGMObstacle;
 import com.monozel.AixmAndPostgis.entities.Obstacle;
 import com.monozel.AixmAndPostgis.requests.HGMObstacleRequest;
 import com.monozel.AixmAndPostgis.requests.MatchedObstacles;
-import com.monozel.AixmAndPostgis.requests.ObstacleRequest;
 import com.monozel.AixmAndPostgis.services.HGMObstacleService;
 import com.monozel.AixmAndPostgis.services.JavaXmlConvertService;
 import com.monozel.AixmAndPostgis.services.ObstacleService;
@@ -16,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 @RestController

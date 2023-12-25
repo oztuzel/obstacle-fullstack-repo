@@ -21,6 +21,8 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -765,8 +767,10 @@ public class JavaXmlConvertService {
                 AIXMBasicMessageType.class,
                 aixmBasicMessageType
         );
+
         AixmMarshaller marshaller = new AixmMarshaller();
-        marshaller.marshal(jaxbElement,new File("notMatchedHGMObstacles.xml"));
+        marshaller.marshal(jaxbElement,new File("./files/notMatchedHGMObstacles.xml"));
+
         return aixmBasicMessageType;
     }
 
